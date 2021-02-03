@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import json
 import sys
+from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
 from myproject.apps.core.versioning import get_git_changeset_timestamp
 
@@ -33,7 +34,7 @@ def get_secret(setting):
     try:
         return secrets[setting]
     except KeyError:
-        error_msg = f'Set the {setting} environment variable'
+        error_msg = f'Set the {setting} secret variable'
         raise ImproperlyConfigured(error_msg)
 
 
@@ -47,7 +48,10 @@ SECRET_KEY = get_secret('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "0.0.0.0",
+]
 
 
 # Application definition
@@ -59,6 +63,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'myproject.apps.magazine',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -101,7 +107,7 @@ DATABASES = {
         'NAME': get_secret('DATABASE_NAME'),
         'USER': get_secret('DATABASE_USER'),
         'PASSWORD': get_secret('DATABASE_PASSWORD'),
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
@@ -143,6 +149,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'myproject', 'site_static'),
+]
 timestamp = get_git_changeset_timestamp(BASE_DIR)
 """ when you use Heroku or Docker for deployments—you don't have access to a Git repository 
 and the git log command in the remote servers. 
@@ -152,14 +166,24 @@ myproject/settings/last-modified.txt—that should be updated with each commit."
 # with open(os.path.join(BASE_DIR, 'myproject', 'settings', 'last-update.txt'), 'r') as f:
 #     timestamp = f.readline().strip()
 STATIC_URL = f'/static/{timestamp}/'
-
-LOCALE_PATHS = [
-    os.path.join(BASE_DIR, 'locale'),
-]
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'myproject', 'site_static'),
-]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MAGAZINE_ARTICLE_THEME_CHOICES = [
+    ('futurism', _("Futurism")),
+    ('nostalgia', _("Nostalgia")),
+    ('sustainability', _("Sustainability")),
+    ('wonder', _("Wonder")),
+    ('positivity', _("Positivity")),
+    ('solutions', _("Solutions")),
+    ('science', _("Science")),
+]
+
+EMAIL_HOST = get_secret("EMAIL_HOST")
+EMAIL_PORT = get_secret("EMAIL_PORT")
+EMAIL_HOST_USER = get_secret("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = get_secret("EMAIL_HOST_PASSWORD")
+
 
